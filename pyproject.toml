@@ -5,7 +5,7 @@ authors = [{name = "Vincenzo Timmel", email = "vincenzo.timmel@fhnw.ch"}]
 description = "A Python package for the fetching (and some processing and plotting) of eCallisto data based on request and pandas."
 readme = "README.md"
 
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.10"
 
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -25,7 +25,9 @@ dependencies = [
     'bs4',
     'lxml',
     'astropy',
-    'tqdm'
+    'tqdm',
+    "ipykernel>=7.3.0",
+    "pytest>=9.1.1",
 ]
 [project.optional-dependencies]
 nb = ['nbformat', 'ipython', 'ipykernel']
