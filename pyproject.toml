@@ -25,9 +25,7 @@ dependencies = [
     'bs4',
     'lxml',
     'astropy',
-    'tqdm',
-    "ipykernel>=7.3.0",
-    "pytest>=9.1.1",
+    'tqdm'
 ]
 [project.optional-dependencies]
 nb = ['nbformat', 'ipython', 'ipykernel']
