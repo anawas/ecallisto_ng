@@ -1,21 +1,13 @@
 import numpy as np
 
 from ecallisto_ng.combine_antennas.utils import (
-    align_to_reference,
-    get_cross_corr_matrix,
-    make_frequencies_match_spectrograms,
-    make_times_match_spectrograms,
-    shift_spectrograms,
-)
+    align_to_reference, get_cross_corr_matrix,
+    make_frequencies_match_spectrograms, make_times_match_spectrograms,
+    shift_spectrograms)
 from ecallisto_ng.data_processing.utils import (
-    apply_median_filter,
-    apply_quantile_filter,
-    intensity_to_linear,
-    mean_filter,
-    min_max_scale_per_column,
-    subtract_constant_background,
-    subtract_low_signal_noise_background,
-)
+    apply_median_filter, apply_quantile_filter, intensity_to_linear,
+    mean_filter, min_max_scale_per_column, subtract_constant_background,
+    subtract_low_signal_noise_background)
 from ecallisto_ng.plotting.utils import downcast_timedelta
 
 

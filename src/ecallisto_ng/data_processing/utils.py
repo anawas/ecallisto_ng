@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
 import scipy.signal
-from scipy.ndimage import median_filter
+from scipy.ndimage import generic_filter, median_filter
 from skimage import filters
-from scipy.ndimage import generic_filter
 
 
 def calculate_snr(data: pd.DataFrame, window: int = 5) -> np.float64:

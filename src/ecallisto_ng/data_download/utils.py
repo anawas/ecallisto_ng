@@ -1,9 +1,8 @@
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
-from datetime import datetime, timezone
 
 
 def filter_dataframes(

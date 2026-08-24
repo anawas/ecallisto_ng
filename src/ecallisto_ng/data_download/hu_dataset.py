@@ -1,13 +1,13 @@
-import pandas as pd
 import glob
+import os
+from datetime import datetime, timedelta
+
+import pandas as pd
 from datasets import Dataset, Image
 from PIL import Image as PILImage
-
-import os
-import pandas as pd
-from datetime import datetime, timedelta
-from ecallisto_ng.data_download.downloader import get_ecallisto_data
 from tqdm.auto import tqdm
+
+from ecallisto_ng.data_download.downloader import get_ecallisto_data
 
 
 def load_radio_dataset(base_path: str) -> Dataset:
