@@ -1,3 +1,5 @@
+from typing import Any, Literal
+
 import numpy as np
 import pandas as pd
 import scipy.signal
@@ -31,7 +33,9 @@ def min_max_scale_per_column(data: pd.DataFrame) -> pd.DataFrame:
     return scaled_data
 
 
-def apply_quantile_filter(df, quantile_value, size=(3, 3)):
+def apply_quantile_filter(
+    df: pd.DataFrame, quantile_value: float, size: tuple[int, int] = (3, 3)
+) -> pd.DataFrame:
     """
     Apply quantile filter to a DataFrame.
 
@@ -50,7 +54,7 @@ def apply_quantile_filter(df, quantile_value, size=(3, 3)):
         Filtered DataFrame.
     """
 
-    def quantile_func(values):
+    def quantile_func(values: np.ndarray) -> np.floating:
         return np.quantile(values, quantile_value)
 
     data = generic_filter(df.values, quantile_func, size=size, mode="reflect")
@@ -58,7 +62,9 @@ def apply_quantile_filter(df, quantile_value, size=(3, 3)):
     return df
 
 
-def mean_filter(df, kernel_size=(5, 5)):
+def mean_filter(
+    df: pd.DataFrame, kernel_size: tuple[int, int] = (5, 5)
+) -> pd.DataFrame:
     """
     Apply mean filter to a DataFrame using a 2D convolution.
 
@@ -80,7 +86,9 @@ def mean_filter(df, kernel_size=(5, 5)):
     return df
 
 
-def apply_median_filter(df, size=(3, 3)):
+def apply_median_filter(
+    df: pd.DataFrame, size: tuple[int, int] = (3, 3)
+) -> pd.DataFrame:
     """
     Apply median filter to a DataFrame.
 
@@ -101,7 +109,7 @@ def apply_median_filter(df, size=(3, 3)):
     return df
 
 
-def return_strftime_based_on_range(time_range):
+def return_strftime_based_on_range(time_range: pd.Timedelta) -> str:
     # Decide on the date-time format based on the time range
     if time_range < pd.Timedelta(days=1):
         date_format = "%H:%M:%S"
@@ -114,13 +122,13 @@ def return_strftime_based_on_range(time_range):
 
 
 def elimwrongchannels(
-    df,
-    channel_std_mult=5,
-    jump_std_mult=2,
-    nan_interpolation_method="pchip",
-    interpolate_created_nans=True,
-    verbose=False,
-):
+    df: pd.DataFrame,
+    channel_std_mult: float = 5,
+    jump_std_mult: float = 2,
+    nan_interpolation_method: str = "pchip",
+    interpolate_created_nans: bool = True,
+    verbose: bool = False,
+) -> pd.DataFrame:
     """
     Remove Radio Frequency Interference (RFI) from a spectrogram represented by a pandas DataFrame.
     This function works even when there is missing data thanks to interpolation of missing values.
@@ -216,7 +224,7 @@ def elimwrongchannels(
     return df
 
 
-def subtract_constant_background(df, n=300):
+def subtract_constant_background(df: pd.DataFrame, n: int = 300) -> pd.DataFrame:
     """
     Subtract a constant background from a spectrogram represented by a pandas DataFrame.
 
@@ -240,8 +248,13 @@ def subtract_constant_background(df, n=300):
 
 
 def subtract_rolling_background(
-    df, window=30, center=False, how="quantile", quantile_value=0.05, **kwargs
-):
+    df: pd.DataFrame,
+    window: int = 30,
+    center: bool = False,
+    how: Literal["median", "quantile"] = "quantile",
+    quantile_value: float = 0.05,
+    **kwargs: Any,
+) -> pd.DataFrame:
     """
     Subtract a rolling background from a spectrogram represented by a pandas DataFrame.
 
@@ -282,7 +295,9 @@ def subtract_rolling_background(
     return df - df_rolling
 
 
-def subtract_low_signal_noise_background(df, percentile=0.05):
+def subtract_low_signal_noise_background(
+    df: pd.DataFrame, percentile: float = 0.05
+) -> pd.DataFrame:
     """
     Background subtraction method adapted for DataFrame.
     The average and the standard deviation of each row will be calculated and subtracted from the DataFrame.
@@ -313,7 +328,7 @@ def subtract_low_signal_noise_background(df, percentile=0.05):
     return df - background
 
 
-def intensity_to_linear(df, factor=0.0386):
+def intensity_to_linear(df: pd.DataFrame, factor: float = 0.0386) -> pd.DataFrame:
     """
     Convert Callisto values (W) and make them linear.
     Based on the following forumla:
@@ -329,7 +344,7 @@ def intensity_to_linear(df, factor=0.0386):
     return 10 ** (df * factor)
 
 
-def linear_to_intensity(df, factor=0.0386):
+def linear_to_intensity(df: pd.DataFrame, factor: float = 0.0386) -> pd.DataFrame:
     """
     Convert db (I) back to Callisto values (W).
     Based on the following forumla:

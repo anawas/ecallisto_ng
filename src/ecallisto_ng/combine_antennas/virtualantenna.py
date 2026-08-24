@@ -1,9 +1,10 @@
+from collections.abc import Sequence
+from typing import Literal
+
 try:
     import torch
-except:
+except ImportError:
     print("PyTorch not found. Please install it.")
-
-from typing import List, Literal, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -56,13 +57,13 @@ class EcallistoVirtualAntenna:
         self,
         min_n_frequencies: int = 30,
         resample_time_delta: pd.Timedelta = pd.Timedelta(250, unit="ms"),
-        freq_range: Optional[Tuple[int, int]] = [-np.inf, np.inf],
+        freq_range: Sequence[float] = (-np.inf, np.inf),
         subtract_background: bool = True,
-        filter_type: Optional[Literal["median", "mean", "quantile"]] = "median",
+        filter_type: Literal["median", "mean", "quantile"] | None = "median",
         filter_quantile_value: float = 0.5,  # TODO
-        filter_size: Tuple[int, int] = (12, 12),
+        filter_size: tuple[int, int] = (12, 12),
         db_space: bool = True,
-    ):
+    ) -> None:
         self.min_n_frequencies = min_n_frequencies
         self.freq_range = freq_range
         self.resample_time_delta = resample_time_delta
@@ -71,9 +72,9 @@ class EcallistoVirtualAntenna:
         self.filter_size = filter_size
         self.filter_quantile_value = filter_quantile_value
         self.db_space = db_space
-        self.data = None
+        self.data: list[pd.DataFrame] | None = None
 
-    def _preprocess(self, dfs: List[pd.DataFrame]):
+    def _preprocess(self, dfs: Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
         data_processed = preprocess_data(
             dfs,
             db_space=self.db_space,
@@ -87,17 +88,19 @@ class EcallistoVirtualAntenna:
         )
         return data_processed
 
-    def _sync_and_match(self, data_processed):
+    def _sync_and_match(
+        self, data_processed: Sequence[pd.DataFrame]
+    ) -> tuple[list[pd.DataFrame], int | np.integer | None]:
         matched_data = match_spectrograms(data_processed)
         synced_data, ref_idx = sync_spectrograms(matched_data)
         return synced_data, ref_idx
 
     def preprocess_match_sync(
         self,
-        dfs: List[pd.DataFrame],
+        dfs: Sequence[pd.DataFrame],
         method: Literal["round", "rebin"] = "round",
         bin_width: float = 0.2,
-    ):
+    ) -> tuple[list[pd.DataFrame], int | np.integer | None]:
         """
         Preprocesses, matches, and synchronizes a list of spectrogram DataFrames.
         This is a higher-level function that calls the individual preprocessing, matching,
@@ -128,13 +131,19 @@ class EcallistoVirtualAntenna:
         return synced_data, ref_idx
 
     @staticmethod
-    def _combine_quantile(dfs, quantile):
+    def _combine_quantile(dfs: Sequence[pd.DataFrame], quantile: float) -> pd.DataFrame:
         torch_shifted = torch.stack([torch.from_numpy(df.values) for df in dfs])
         torch_quantile = torch.nanquantile(torch_shifted, quantile, dim=0)
         return pd.DataFrame(torch_quantile, columns=dfs[0].columns, index=dfs[0].index)
 
     @staticmethod
-    def _combine_loss(dfs, epochs, ignore_ratio, grad_penalty_weight, lr):
+    def _combine_loss(
+        dfs: Sequence[pd.DataFrame],
+        epochs: int,
+        ignore_ratio: float,
+        grad_penalty_weight: float,
+        lr: float,
+    ) -> pd.DataFrame:
         tensor_list = [torch.tensor(df.values, dtype=torch.float32) for df in dfs]
         noise_tensor = torch.rand(tensor_list[0].shape, requires_grad=True)
 
@@ -188,7 +197,7 @@ class EcallistoVirtualAntenna:
 
     def combine(
         self,
-        dfs: List[pd.DataFrame],
+        dfs: Sequence[pd.DataFrame],
         method: Literal["quantile", "loss"] = "quantile",
         quantile: float = 0.5,
         epochs: int = 1000,

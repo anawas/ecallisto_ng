@@ -1,4 +1,8 @@
+from collections.abc import Sequence
+from typing import Literal
+
 import numpy as np
+import pandas as pd
 
 from ecallisto_ng.combine_antennas.utils import (
     align_to_reference, get_cross_corr_matrix,
@@ -11,7 +15,7 @@ from ecallisto_ng.data_processing.utils import (
 from ecallisto_ng.plotting.utils import downcast_timedelta
 
 
-def match_spectrograms(datas):
+def match_spectrograms(datas: Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
     """
     Match the time and frequency dimensions across a list of spectrogram DataFrames.
     Basically, takes the max and min time and frequency values and makes all the
@@ -33,7 +37,11 @@ def match_spectrograms(datas):
     return data_processed
 
 
-def sync_spectrograms(dfs, shifts=None, method="maximize_cross_correlation"):
+def sync_spectrograms(
+    dfs: Sequence[pd.DataFrame],
+    shifts: Sequence[float] | np.ndarray | None = None,
+    method: Literal["maximize_cross_correlation"] = "maximize_cross_correlation",
+) -> tuple[list[pd.DataFrame], int | np.integer | None]:
     """
     Synchronize a list of spectrograms based on pairwise cross-correlation.
     If the nans are not removed, this method does not work because it can
@@ -85,17 +93,17 @@ def sync_spectrograms(dfs, shifts=None, method="maximize_cross_correlation"):
 
 
 def preprocess_data(
-    datas,
-    db_space,
-    resample_time_delta,
-    min_n_frequencies,
-    freq_range,
-    filter_type,
-    filter_size,
-    filter_quantile_value,
-    subtract_background,
-    resample_func="mean",
-):
+    datas: Sequence[pd.DataFrame],
+    db_space: bool,
+    resample_time_delta: pd.Timedelta,
+    min_n_frequencies: int,
+    freq_range: Sequence[float],
+    filter_type: Literal["median", "mean", "quantile"] | None,
+    filter_size: tuple[int, int],
+    filter_quantile_value: float,
+    subtract_background: bool,
+    resample_func: Literal["mean", "max", "min"] = "mean",
+) -> list[pd.DataFrame]:
     """
     Process a list of DataFrames based on a series of filtering and transformation steps.
 

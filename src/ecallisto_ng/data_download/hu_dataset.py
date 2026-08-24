@@ -1,6 +1,8 @@
 import glob
 import os
+from collections.abc import Sequence
 from datetime import datetime, timedelta
+from typing import Any
 
 import pandas as pd
 from datasets import Dataset, Image
@@ -10,7 +12,7 @@ from tqdm.auto import tqdm
 from ecallisto_ng.data_download.downloader import get_ecallisto_data
 
 
-def load_radio_dataset(base_path: str) -> Dataset:
+def load_radio_dataset(base_path: str) -> Dataset | None:
     """
     Loads a radio dataset from parquet files located within the specified base path.
 
@@ -44,7 +46,7 @@ def load_radio_dataset(base_path: str) -> Dataset:
     if len(dataset) == 0:
         return None
 
-    def load_image_from_parquet(example):
+    def load_image_from_parquet(example: dict[str, Any]) -> dict[str, Any]:
         path = example["image"]
         d = pd.read_parquet(path)
         example["image"] = PILImage.fromarray(d.values.T)
@@ -59,13 +61,13 @@ def load_radio_dataset(base_path: str) -> Dataset:
 def create_overlapping_parquets(
     start_datetime: datetime,
     end_datetime: datetime,
-    instruments: list,
+    instruments: Sequence[str],
     folder: str = "~/.cache/ecallisto_ng/data",
     duration: timedelta = timedelta(minutes=15),
     min_duration: timedelta = timedelta(minutes=10),
     overlap: timedelta = timedelta(minutes=1),
     download_from_local: bool = False,
-):
+) -> None:
     folder = os.path.expanduser(folder)
     os.makedirs(folder, exist_ok=True)
     start_datetimes = pd.date_range(

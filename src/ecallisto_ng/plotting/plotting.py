@@ -1,8 +1,15 @@
+from collections.abc import Sequence
+from datetime import datetime
+from os import PathLike
+from typing import Literal
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
+from matplotlib.figure import Figure as MatplotlibFigure
+from plotly.graph_objects import Figure as PlotlyFigure
 
 from ecallisto_ng.data_download.downloader import get_ecallisto_data
 from ecallisto_ng.data_fetching.get_data import NoDataAvailable
@@ -12,20 +19,20 @@ from ecallisto_ng.plotting.utils import (
 
 
 def plot_spectrogram_mpl(
-    df,
-    instrument_name=None,
-    start_datetime=None,
-    end_datetime=None,
-    title="Flux",
-    fig_size=(9, 6),
-    cmap="plasma",
-    cross_to_plot=None,
-    dot_to_plot=None,
-    cbar_label="Radio Flux",
-    colorbar=True,
-    vmin=None,
-    vmax=None,
-):
+    df: pd.DataFrame | dict[str, pd.DataFrame],
+    instrument_name: str | None = None,
+    start_datetime: datetime | pd.Timestamp | str | None = None,
+    end_datetime: datetime | pd.Timestamp | str | None = None,
+    title: str | None = "Flux",
+    fig_size: tuple[float, float] = (9, 6),
+    cmap: str = "plasma",
+    cross_to_plot: tuple[Sequence[pd.Timestamp], Sequence[float]] | None = None,
+    dot_to_plot: tuple[Sequence[pd.Timestamp], Sequence[float]] | None = None,
+    cbar_label: str = "Radio Flux",
+    colorbar: bool = True,
+    vmin: float | None = None,
+    vmax: float | None = None,
+) -> MatplotlibFigure:
     # Create a new dataframe with rounded column names
     df = df.copy()
     # Check if it's a dictionary. If it is, take the first key
@@ -82,7 +89,7 @@ def plot_spectrogram_mpl(
         vmax=vmax,
     )
 
-    def find_nearest_idx(array, value):
+    def find_nearest_idx(array: Sequence[float], value: float) -> int:
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return idx
@@ -180,18 +187,18 @@ def plot_spectrogram_mpl(
 
 
 def plot_spectrogram(
-    df,
-    instrument_name=None,
-    start_datetime=None,
-    end_datetime=None,
-    title="Radio Flux Density",
-    save_path=None,
-    resolution=1440,
-    samplig_method="max",
-    font_size=18,
-    fig_size=(600, 1000),
-    color_scale=px.colors.sequential.Plasma,
-):
+    df: pd.DataFrame | dict[str, pd.DataFrame],
+    instrument_name: str | None = None,
+    start_datetime: datetime | pd.Timestamp | str | None = None,
+    end_datetime: datetime | pd.Timestamp | str | None = None,
+    title: str = "Radio Flux Density",
+    save_path: str | PathLike[str] | None = None,
+    resolution: int | None = 1440,
+    samplig_method: Literal["mean", "max", "min"] | str = "max",
+    font_size: int = 18,
+    fig_size: tuple[int, int] = (600, 1000),
+    color_scale: Sequence[str] | str = px.colors.sequential.Plasma,
+) -> PlotlyFigure:
     # Check if it's a dictionary. If it is, take the first key
     if isinstance(df, dict):
         if len(df) > 1:
@@ -248,15 +255,15 @@ def plot_spectrogram(
 
 
 def plot_with_fixed_resolution_mpl(
-    instrument,
-    start_datetime_str,
-    end_datetime_str,
-    sampling_method="max",
-    download_from_local=False,
-    resolution=1440,
-    fig_size=(9, 6),
-    verbose=False,
-):
+    instrument: str,
+    start_datetime_str: datetime | pd.Timestamp | str,
+    end_datetime_str: datetime | pd.Timestamp | str,
+    sampling_method: Literal["mean", "max", "min"] | str = "max",
+    download_from_local: bool = False,
+    resolution: int | None = 1440,
+    fig_size: tuple[float, float] = (9, 6),
+    verbose: bool = False,
+) -> MatplotlibFigure | None:
     """
     Plots the spectrogram for the given instrument between specified start and end datetime strings
     with a fixed resolution using Matplotlib.

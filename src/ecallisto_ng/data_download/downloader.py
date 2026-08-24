@@ -4,9 +4,11 @@ import os
 import sys
 import traceback
 from concurrent.futures import ProcessPoolExecutor
-from datetime import timedelta
+from collections.abc import Generator, Sequence
+from datetime import datetime, timedelta
 from functools import partial
 from multiprocessing import current_process
+from os import PathLike
 
 import pandas as pd
 import requests
@@ -18,20 +20,21 @@ from ecallisto_ng.data_download.utils import (
     concat_dfs_by_instrument, ecallisto_fits_to_pandas,
     extract_datetime_from_filename, extract_instrument_name, filter_dataframes,
     instrument_name_to_globbing_pattern, to_naive_utc)
+from ecallisto_ng.data_download.utils import DataFrameByInstrument
 
 BASE_URL = "http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto"
 LOCAL_PATH = "/mnt/nas05/data01/radio/2002-20yy_Callisto"
 
 
 def get_ecallisto_data(
-    start_datetime,
-    end_datetime,
-    instrument_name=None,
-    verbose=False,
-    freq_start=None,
-    freq_end=None,
-    download_from_local=False,
-):
+    start_datetime: datetime | pd.Timestamp,
+    end_datetime: datetime | pd.Timestamp,
+    instrument_name: str | None = None,
+    verbose: bool = False,
+    freq_start: float | None = None,
+    freq_end: float | None = None,
+    download_from_local: bool = False,
+) -> DataFrameByInstrument:
     """
     Get the e-Callisto data within a date range and optional instrument regex pattern.
     For big requests, it is recommended to use the generator function `get_ecallisto_data_generator`,
@@ -92,14 +95,14 @@ def get_ecallisto_data(
 
 
 def get_ecallisto_data_generator(
-    start_datetime,
-    end_datetime,
-    instrument_name=None,
-    freq_start=None,
-    freq_end=None,
-    verbose=False,
-    base_url=BASE_URL,
-):
+    start_datetime: datetime | pd.Timestamp,
+    end_datetime: datetime | pd.Timestamp,
+    instrument_name: str | Sequence[str] | None = None,
+    freq_start: float | None = None,
+    freq_end: float | None = None,
+    verbose: bool = False,
+    base_url: str = BASE_URL,
+) -> Generator[tuple[str, pd.DataFrame], None, dict[str, pd.DataFrame] | None]:
     """
     Generator function to yield e-Callisto data one file at a time within a date range.
     It returns a tuple with (instrument_name, dataframe)
@@ -177,8 +180,10 @@ def get_ecallisto_data_generator(
 
 
 def get_instrument_with_available_data(
-    start_date=None, end_date=None, instrument_name=None
-):
+    start_date: datetime | pd.Timestamp | None = None,
+    end_date: datetime | pd.Timestamp | None = None,
+    instrument_name: str | None = None,
+) -> list[str] | dict[str, pd.DataFrame]:
     """
     Retrieve sorted list of unique instrument names with available data in a specified date range.
 
@@ -223,7 +228,9 @@ def get_instrument_with_available_data(
     return sorted(list(set(instrument_names)))
 
 
-def download_fits_process_to_pandas(file_urls, verbose=False):
+def download_fits_process_to_pandas(
+    file_urls: Sequence[str | PathLike[str]], verbose: bool = False
+) -> list[pd.DataFrame]:
     # Check if we're in a daemon process
     is_daemon = current_process().daemon
     partial_f = partial(
@@ -264,7 +271,9 @@ def download_fits_process_to_pandas(file_urls, verbose=False):
     return results
 
 
-def fetch_fits_to_pandas(file_url, verbose):
+def fetch_fits_to_pandas(
+    file_url: str | PathLike[str], verbose: bool
+) -> pd.DataFrame | None:
     old_stdout = sys.stdout
     if not verbose:
         sys.stdout = open(os.devnull, "w")
@@ -284,7 +293,7 @@ def fetch_fits_to_pandas(file_url, verbose):
             sys.stdout = old_stdout
 
 
-def fetch_date_files(date_url):
+def fetch_date_files(date_url: str) -> list[str]:
     """
     Fetch and parse file URLs from a given date URL.
 
@@ -322,11 +331,11 @@ def fetch_date_files(date_url):
 
 
 def get_remote_files_url(
-    start_date,
-    end_date,
-    instrument_name=None,
-    base_url="http://soleil80.cs.technik.fhnw.ch/solarradio/data/2002-20yy_Callisto",
-):
+    start_date: datetime | pd.Timestamp,
+    end_date: datetime | pd.Timestamp,
+    instrument_name: str | None = None,
+    base_url: str = BASE_URL,
+) -> list[str]:
     """
     Get the remote file URLs within a date range and optional instrument regex pattern.
 
@@ -388,11 +397,11 @@ def get_remote_files_url(
 
 
 def get_local_file_paths(
-    start_date,
-    end_date,
-    instrument_name=None,
-    base_path=LOCAL_PATH,
-):
+    start_date: datetime | pd.Timestamp,
+    end_date: datetime | pd.Timestamp,
+    instrument_name: str | None = None,
+    base_path: str | PathLike[str] = LOCAL_PATH,
+) -> list[str]:
     """
     Get the local file paths within a date range and optional instrument regex pattern.
 

@@ -2,6 +2,8 @@ import json
 import os
 import time
 import warnings
+from os import PathLike
+from typing import Any
 
 import pandas as pd
 import requests
@@ -17,20 +19,20 @@ DATA_FOLDER = "ecallisto_ng_cache"
 
 
 class NoDataAvailable(Exception):
-    def __init__(self, data):
+    def __init__(self, data: Any) -> None:
         super().__init__(f"No data available for {data}")
 
 
 def get_data(
-    instrument_name,
-    start_datetime,
-    end_datetime,
-    timebucket=None,
-    agg_function=None,
-    data_folder=DATA_FOLDER,
-    verbose=False,
-    max_retries=3,
-):
+    instrument_name: str,
+    start_datetime: str,
+    end_datetime: str,
+    timebucket: str | None = None,
+    agg_function: str | None = None,
+    data_folder: str | PathLike[str] = DATA_FOLDER,
+    verbose: bool = False,
+    max_retries: int = 3,
+) -> pd.DataFrame | None:
     """
     Get data from the eCallisto API. See: https://v000792.fhnw.ch/api/redoc
     Of course, this is just a wrapper around the requests.post function.
@@ -180,7 +182,7 @@ def get_data(
         print(f"Error starting data retrieval: {response.status_code}")
 
 
-def read_parquet_and_meta_data(file_path):
+def read_parquet_and_meta_data(file_path: str | PathLike[str]) -> pd.DataFrame:
     meta_data_path = file_path.replace(".parquet", ".json")
     df = pd.read_parquet(file_path)
     with open(meta_data_path, "r") as f:
@@ -192,7 +194,7 @@ def read_parquet_and_meta_data(file_path):
 
 # Because of SQL limitation, the names of the tables do not perfectly match the instrument names.
 # This function converts the instrument name to the table name.
-def extract_instrument_name(file_path):
+def extract_instrument_name(file_path: str | PathLike[str]) -> str:
     """
     Because of SQL limitation, the names of the tables do not perfectly match the instrument names.
     This function converts the instrument name to the table name.
@@ -235,7 +237,9 @@ def extract_instrument_name(file_path):
     return file_name[1:]  # Remove the first '-'
 
 
-def reverse_extract_instrument_name(instrument_name, include_number=False):
+def reverse_extract_instrument_name(
+    instrument_name: str, include_number: bool = False
+) -> str:
     """
     Because of SQL limitation, the names of the tables do not perfectly match the instrument names.
     Convert a lower-case instrument name with underscores to its original hyphenated form.

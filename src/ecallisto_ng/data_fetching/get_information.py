@@ -1,10 +1,12 @@
+from typing import Any
+
 import pandas as pd
 import requests
 
 BASE_URL = "https://v000792.fhnw.ch"
 
 
-def get_tables(verbose=False):
+def get_tables(verbose: bool = False) -> list[str]:
     """
     Fetch all the available table names from the eCallisto API.
 
@@ -30,8 +32,10 @@ def get_tables(verbose=False):
 
 
 def get_table_names_with_data_between_dates(
-    start_datetime, end_datetime, verbose=False
-):
+    start_datetime: str,
+    end_datetime: str,
+    verbose: bool = False,
+) -> list[str]:
     """
     Fetch all the available table names that contain data between the specified dates from the eCallisto API.
 
@@ -69,7 +73,9 @@ def get_table_names_with_data_between_dates(
         raise ValueError(f"Error getting table names from API: {response.text}")
 
 
-def check_min_max_datetime_in_table(instrument_name, verbose=False, **kwargs):
+def check_min_max_datetime_in_table(
+    instrument_name: str, verbose: bool = False, **kwargs: Any
+) -> tuple[pd.Timestamp, pd.Timestamp]:
     """
     Check the minimum and maximum datetimes in a table using the eCallisto API.
 
@@ -107,8 +113,12 @@ def check_min_max_datetime_in_table(instrument_name, verbose=False, **kwargs):
 
 
 def check_table_data_availability(
-    instrument_name, start_datetime, end_datetime, verbose=False, **kwargs
-):
+    instrument_name: str,
+    start_datetime: str,
+    end_datetime: str,
+    verbose: bool = False,
+    **kwargs: Any,
+) -> bool:
     """
     Check if a table has data between the specified dates using the eCallisto API.
 

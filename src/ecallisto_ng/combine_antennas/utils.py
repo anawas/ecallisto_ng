@@ -1,4 +1,5 @@
-from typing import List
+from collections.abc import Sequence
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -6,7 +7,7 @@ import pandas as pd
 from ecallisto_ng.plotting.utils import fill_missing_timesteps_with_nan
 
 
-def make_times_match_spectrograms(dfs: List[pd.DataFrame]) -> List[pd.DataFrame]:
+def make_times_match_spectrograms(dfs: Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
     """
     Adjusts the time index of the given list of DataFrames to have the same start and end times.
 
@@ -33,7 +34,9 @@ def make_times_match_spectrograms(dfs: List[pd.DataFrame]) -> List[pd.DataFrame]
     return new_dfs
 
 
-def interpolate_columns(df: pd.DataFrame, all_columns: List[float]) -> pd.DataFrame:
+def interpolate_columns(
+    df: pd.DataFrame, all_columns: Sequence[float | str]
+) -> pd.DataFrame:
     """
     Interpolates missing columns in a DataFrame.
 
@@ -54,7 +57,9 @@ def interpolate_columns(df: pd.DataFrame, all_columns: List[float]) -> pd.DataFr
     return df
 
 
-def make_frequencies_match_spectrograms(dfs: List[pd.DataFrame]) -> List[pd.DataFrame]:
+def make_frequencies_match_spectrograms(
+    dfs: Sequence[pd.DataFrame],
+) -> list[pd.DataFrame]:
     """
     Makes frequency columns across multiple spectrogram DataFrames consistent.
 
@@ -74,7 +79,7 @@ def make_frequencies_match_spectrograms(dfs: List[pd.DataFrame]) -> List[pd.Data
     return new_dfs
 
 
-def get_max_cross_corr_shift(spec1, spec2):
+def get_max_cross_corr_shift(spec1: pd.DataFrame, spec2: pd.DataFrame) -> int:
     """
     Get the shift amount that maximizes the cross-correlation between two spectrograms.
 
@@ -96,7 +101,7 @@ def get_max_cross_corr_shift(spec1, spec2):
     return cross_corr.argmax() - (len(spec1) - 1)
 
 
-def get_cross_corr_matrix(specs: List[pd.DataFrame]) -> np.ndarray:
+def get_cross_corr_matrix(specs: Sequence[pd.DataFrame]) -> np.ndarray:
     """
     Get the cross-correlation matrix between a list of spectrograms.
 
@@ -120,7 +125,7 @@ def get_cross_corr_matrix(specs: List[pd.DataFrame]) -> np.ndarray:
     return cross_corr_matrix
 
 
-def find_best_reference(cross_corr_matrix):
+def find_best_reference(cross_corr_matrix: np.ndarray) -> np.integer:
     """
     Find the best reference spectrogram based on the minimum sum of shifts.
 
@@ -138,7 +143,7 @@ def find_best_reference(cross_corr_matrix):
     return abs_sum_shifts.argmin()
 
 
-def align_to_reference(cross_corr_matrix):
+def align_to_reference(cross_corr_matrix: np.ndarray) -> tuple[np.integer, np.ndarray]:
     """
     Align all spectrograms to the best reference based on the cross-correlation matrix.
 
@@ -157,7 +162,9 @@ def align_to_reference(cross_corr_matrix):
     return ref_idx, shifts_to_ref
 
 
-def shift_spectrograms(spec_list, shifts):
+def shift_spectrograms(
+    spec_list: Sequence[pd.DataFrame], shifts: Sequence[float] | np.ndarray
+) -> list[pd.DataFrame]:
     """
     Shift spectrograms based on the given shifts.
 
@@ -180,7 +187,11 @@ def shift_spectrograms(spec_list, shifts):
     return shifted_spectrograms
 
 
-def round_frequencies_to_nearest_bin(dfs, bin_size, method="rebin"):
+def round_frequencies_to_nearest_bin(
+    dfs: Sequence[pd.DataFrame],
+    bin_size: float,
+    method: Literal["round", "rebin"] = "rebin",
+) -> list[pd.DataFrame]:
     """
     Rounds each frequency column in multiple DataFrames to the nearest bin edge and groups them.
     This is so that the frequencies are consistent across multiple DataFrames and we don't
@@ -211,7 +222,7 @@ def round_frequencies_to_nearest_bin(dfs, bin_size, method="rebin"):
     return rounded_dfs
 
 
-def round_col_to_nearest_bin(df, bin_size):
+def round_col_to_nearest_bin(df: pd.DataFrame, bin_size: float) -> pd.DataFrame:
     """
     Rounds each frequency column to the nearest bin edge and groups them.
 
@@ -237,7 +248,9 @@ def round_col_to_nearest_bin(df, bin_size):
     return df.T.groupby(df.columns).mean().T
 
 
-def compute_weights(old_freqs, new_freqs, new_res):
+def compute_weights(
+    old_freqs: np.ndarray, new_freqs: np.ndarray, new_res: float
+) -> np.ndarray:
     """
     Vectorized computation of weights for each old frequency based on their overlap with the new frequency bins.
 
@@ -270,11 +283,11 @@ def compute_weights(old_freqs, new_freqs, new_res):
     return overlaps
 
 
-def round_to_nearest(x, base):
+def round_to_nearest(x: float, base: float) -> float:
     return base * round(x / base)
 
 
-def rebin_dataframe(df, new_res):
+def rebin_dataframe(df: pd.DataFrame, new_res: float) -> pd.DataFrame:
     """
     Optimized rebinning of DataFrame using vectorized operations.
 
