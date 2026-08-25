@@ -25,7 +25,8 @@ dependencies = [
     'bs4',
     'lxml',
     'astropy',
-    'tqdm'
+    'tqdm',
+    "flake8>=7.3.0",
 ]
 [project.optional-dependencies]
 nb = ['nbformat', 'ipython', 'ipykernel']
