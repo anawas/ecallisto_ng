@@ -14,8 +14,11 @@ from plotly.graph_objects import Figure as PlotlyFigure
 from ecallisto_ng.data_download.downloader import get_ecallisto_data
 from ecallisto_ng.data_fetching.get_data import NoDataAvailable
 from ecallisto_ng.plotting.utils import (
-    calculate_resample_freq, downcast_resolution,
-    return_strftime_based_on_range, return_strftime_for_ticks_based_on_range)
+    calculate_resample_freq,
+    downcast_resolution,
+    return_strftime_based_on_range,
+    return_strftime_for_ticks_based_on_range,
+)
 
 
 def plot_spectrogram_mpl(
@@ -39,7 +42,8 @@ def plot_spectrogram_mpl(
     if isinstance(df, dict):
         if len(df) > 1:
             Warning(
-                "The dataframe has more than one instrument. Only the first instrument will be used."
+                "The dataframe has more than one instrument. Only the first "
+                "instrument will be used."
             )
         df = df[list(df.keys())[0]]
 
@@ -78,7 +82,8 @@ def plot_spectrogram_mpl(
     current_cmap = plt.get_cmap(cmap).copy()
     current_cmap.set_bad(color="black")
 
-    # The imshow function in matplotlib displays data top-down, so we need to reverse the rows
+    # The imshow function in matplotlib displays data top-down, so we need to
+    # reverse the rows
     cax = ax.imshow(
         df.T.iloc[::-1],
         aspect="auto",
@@ -94,8 +99,10 @@ def plot_spectrogram_mpl(
         idx = (np.abs(array - value)).argmin()
         return idx
 
-    # Target ~8 "nice" frequency ticks (multiples of 100/10/5 MHz depending on band width)
-    # matching the quicklook style on https://soleil.i4ds.ch/solarradio/callistoQuicklooks/
+    # Target ~8 "nice" frequency ticks, using multiples of 100/10/5 MHz
+    # depending on band width.
+    # matching the quicklook style on
+    # https://soleil.i4ds.ch/solarradio/callistoQuicklooks/
     N_YTICKS = 10
     freq_vals = df.columns.astype(float)
     freq_range = freq_vals.max() - freq_vals.min()
@@ -110,7 +117,9 @@ def plot_spectrogram_mpl(
     # First and last clean multiple of step that falls inside the data range
     start = np.ceil(freq_vals.min() / step) * step
     end = np.floor(freq_vals.max() / step) * step
-    all_freq = np.concatenate([[freq_vals.min()], np.arange(start, end + step, step), [freq_vals.max()]])
+    all_freq = np.concatenate(
+        [[freq_vals.min()], np.arange(start, end + step, step), [freq_vals.max()]]
+    )
     all_freq = np.unique(all_freq)
 
     # Subsample evenly down to ~N_YTICKS if there are too many
@@ -118,11 +127,12 @@ def plot_spectrogram_mpl(
         indices = np.round(np.linspace(0, len(all_freq) - 1, N_YTICKS)).astype(int)
         all_freq = all_freq[indices]
 
-    # Build ticks and labels together using nice rounded targets, deduplicating by tick index
+    # Build ticks and labels together using nice rounded targets,
+    # deduplicating by tick index
     tick_to_label = {}
     for tick, label in zip(
-            [find_nearest_idx(freq_vals, f) for f in all_freq],
-            [str(int(f)) for f in all_freq],
+        [find_nearest_idx(freq_vals, f) for f in all_freq],
+        [str(int(f)) for f in all_freq],
     ):
         if tick not in tick_to_label:
             tick_to_label[tick] = label
@@ -203,7 +213,8 @@ def plot_spectrogram(
     if isinstance(df, dict):
         if len(df) > 1:
             Warning(
-                "The dataframe has more than one instrument. Only the first instrument will be used."
+                "The dataframe has more than one instrument. Only the first "
+                "instrument will be used."
             )
         df = df[list(df.keys())[0]]
     # Create a new dataframe with rounded column names
@@ -264,24 +275,23 @@ def plot_with_fixed_resolution_mpl(
     fig_size: tuple[float, float] = (9, 6),
     verbose: bool = False,
 ) -> MatplotlibFigure | None:
-    """
-    Plots the spectrogram for the given instrument between specified start and end datetime strings
-    with a fixed resolution using Matplotlib.
+    """Plots the spectrogram for the given instrument between specified start
+    and end datetime strings with a fixed resolution using Matplotlib.
 
-    Parameters:
-    - instrument (str): The name of the instrument for which the spectrogram needs to be plotted.
-    - start_datetime_str (str or pd.Timestamp): The starting datetime for the data range.
-        Can be a string in the format 'YYYY-MM-DD HH:MM:SS' or a Pandas Timestamp.
-    - end_datetime_str (str or pd.Timestamp): The ending datetime for the data range.
-        Can be a string in the format 'YYYY-MM-DD HH:MM:SS' or a Pandas Timestamp.
+    Parameters: - instrument (str): The name of the instrument for which the
+    spectrogram needs to be plotted. - start_datetime_str (str or
+    pd.Timestamp): The starting datetime for the data range.     Can be a
+    string in the format 'YYYY-MM-DD HH:MM:SS' or a Pandas Timestamp. -
+    end_datetime_str (str or pd.Timestamp): The ending datetime for the data
+    range.     Can be a string in the format 'YYYY-MM-DD HH:MM:SS' or a Pandas
+    Timestamp.
 
-    - resolution (int, optional): The desired resolution for plotting. Default is 1440.
-        Determines the time bucketing for the data aggregation.
-    - fig_size (tuple, optional): The desired figure size. Default is (9, 6).
-        The figure size is passed to Matplotlib's `figsize` parameter.
+    - resolution (int, optional): The desired resolution for plotting. Default
+    is 1440.     Determines the time bucketing for the data aggregation. -
+    fig_size (tuple, optional): The desired figure size. Default is (9, 6).
+    The figure size is passed to Matplotlib's `figsize` parameter.
 
-    Returns:
-    None. A spectrogram is plotted using Matplotlib.
+    Returns: None. A spectrogram is plotted using Matplotlib.
     """
     start_datetime = pd.to_datetime(start_datetime_str)
     end_datetime = pd.to_datetime(end_datetime_str)
@@ -298,7 +308,8 @@ def plot_with_fixed_resolution_mpl(
     if isinstance(df, dict):
         if len(df) > 1:
             Warning(
-                "The dataframe has more than one instrument. Only the first instrument will be used."
+                "The dataframe has more than one instrument. Only the first "
+                "instrument will be used."
             )
         df = df[list(df.keys())[0]]
 

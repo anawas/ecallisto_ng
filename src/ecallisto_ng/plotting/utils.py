@@ -73,19 +73,22 @@ def fill_missing_timesteps_with_nan(
     end_datetime: pd.Timestamp | str | None = None,
 ) -> pd.DataFrame:
     """
-    Fill missing timesteps in a pandas DataFrame with NaN values. Only needed for plotting.
+        Fill missing timesteps in a pandas DataFrame with NaN values. Only
+        needed for plotting.
 
     Parameters
     ----------
     df : pandas.DataFrame
         The DataFrame to fill missing timesteps in.
     start_datetime : str or pandas.Timestamp, optional
-        If you want to make sure that the returned DataFrame starts at a specific datetime,
-        you can specify it here. If not specified, the returned DataFrame will start at the
+            If you want to make sure that the returned DataFrame starts at a
+            specific datetime, you can specify it here. If not specified, the
+            returned DataFrame will start at the
         first datetime in the input DataFrame.
     end_datetime : str or pandas.Timestamp, optional
-        If you want to make sure that the returned DataFrame ends at a specific datetime,
-        you can specify it here. If not specified, the returned DataFrame will end at the
+            If you want to make sure that the returned DataFrame ends at a
+            specific datetime, you can specify it here. If not specified, the
+            returned DataFrame will end at the
         last datetime in the input DataFrame.
 
     Returns
@@ -95,11 +98,13 @@ def fill_missing_timesteps_with_nan(
 
     Notes
     -----
-    This function is useful when working with time-series data that has missing timesteps.
-    By filling the missing timesteps with NaN values, the DataFrame can be easily visualized
+        This function is useful when working with time-series data that has
+        missing timesteps. By filling the missing timesteps with NaN values,
+        the DataFrame can be easily visualized
     or analyzed without introducing errors due to missing data.
 
-    The function calculates the median time delta of the input DataFrame, and then creates
+        The function calculates the median time delta of the input DataFrame,
+        and then creates
     a new index with evenly spaced values based on that delta. It then uses the pandas
     `reindex` function to fill in missing timesteps with NaN values.
 

@@ -13,26 +13,21 @@ from ecallisto_ng.data_download.downloader import get_ecallisto_data
 
 
 def load_radio_dataset(base_path: str) -> Dataset | None:
-    """
-    Loads a radio dataset from parquet files located within the specified base path.
+    """Loads a radio dataset from parquet files located within the specified
+    base path.
 
-    This function searches for parquet files within the given base path, extracts
-    metadata such as antenna information and datetime from the file paths, converts
-    these data into a Pandas DataFrame, and then transforms it into a Hugging Face
-    Dataset. It also reads image data from the parquet files and converts them into
-    PIL images.
+    This function searches for parquet files within the given base path,
+    extracts metadata such as antenna information and datetime from the file
+    paths, converts these data into a Pandas DataFrame, and then transforms it
+    into a Hugging Face Dataset. It also reads image data from the parquet
+    files and converts them into PIL images.
 
-    Parameters
-    ----------
-    base_path : str
-        The base directory path where the parquet files are located. The parquet files
-        are expected to be in subdirectories named after antennas.
+    Parameters ---------- base_path : str     The base directory path where the
+    parquet files are located. The parquet files     are expected to be in
+    subdirectories named after antennas.
 
-    Returns
-    -------
-    Dataset
-        A Hugging Face Dataset object containing the image data and associated metadata
-        or None if no data is found.
+    Returns ------- Dataset     A Hugging Face Dataset object containing the
+    image data and associated metadata     or None if no data is found.
     """
     images = glob.glob(os.path.join(base_path, "*", "*.parquet"))
     df = pd.DataFrame({"image": images})

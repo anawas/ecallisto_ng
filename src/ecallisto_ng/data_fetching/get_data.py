@@ -8,8 +8,7 @@ from typing import Any
 import pandas as pd
 import requests
 
-from ecallisto_ng.data_fetching.get_information import \
-    check_table_data_availability
+from ecallisto_ng.data_fetching.get_information import check_table_data_availability
 
 # Import exceptions
 
@@ -33,39 +32,41 @@ def get_data(
     verbose: bool = False,
     max_retries: int = 3,
 ) -> pd.DataFrame | None:
-    """
-    Get data from the eCallisto API. See: https://v000792.fhnw.ch/api/redoc
-    Of course, this is just a wrapper around the requests.post function.
+    """Get data from the eCallisto API.
+
+        See: https://v000792.fhnw.ch/api/redoc. This is a wrapper around the
+        requests.post function.
     Depending on the size, the request can take a while. For example, two
     weeks of data, aggregated in a specific way, can take around 20 seconds.
 
     Parameters
     ----------
     instrument_name : str
-        The name of the instrument to get data from.
+    The name of the instrument to get data from.
     start_datetime : str
-        The start datetime of the data to get.
+    The start datetime of the data to get.
     end_datetime : str
-        The end datetime of the data to get.
+    The end datetime of the data to get.
     timebucket : str
-        In what time frame the data should be grouped (see timescaledb
-        "timebucket" function)
+    In what time frame the data should be grouped (see timescaledb
+    "timebucket" function)
     agg_function : str
-        The aggregation function to use (see timescaledb "timebucket" function)
+    The aggregation function to use (see timescaledb "timebucket" function)
     data_folder : str
-        Where to save the cached data.
+    Where to save the cached data.
     verbose : bool
-        Whether to print the progress or not.
+    Whether to print the progress or not.
     max_retries : int
-        The maximum number of retries to download the data.
+    The maximum number of retries to download the data.
     Returns
     -------
     pandas.DataFrame
-        A DataFrame containing the data from the eCallisto API.
+    A DataFrame containing the data from the eCallisto API.
     """
     warnings.warn(
         DeprecationWarning(
-            "get_data is deprecated and will be removed in the future. See Readme for more information."
+            "get_data is deprecated and will be removed in the future. See "
+            "Readme for more information."
         )
     )
     data = {
@@ -85,9 +86,13 @@ def get_data(
     end_datetime = end_datetime.replace(":", "-")
 
     # Create file path
+    file_name = (
+        f"{instrument_name}_{start_datetime}_{end_datetime}_"
+        f"{timebucket}_{agg_function}.parquet"
+    )
     file_path = os.path.join(
         data_folder,
-        f"{instrument_name}_{start_datetime}_{end_datetime}_{timebucket}_{agg_function}.parquet",
+        file_name,
     )
     os.makedirs(data_folder, exist_ok=True)
     if os.path.exists(file_path):
@@ -128,35 +133,42 @@ def get_data(
                     meta_data_response = requests.get(BASE_URL + meta_data_url)
                     with open(file_path.replace(".parquet", ".json"), "w") as f:
                         f.write(meta_data_response.text)
-                    # Check that the file is bigger than 8 bytes (sometimes, the API returns an empty file)
+                    # Check that the file is bigger than 8 bytes (sometimes, the API
+                    # returns an empty file)
                     if os.path.getsize(file_path) > 8:
                         return read_parquet_and_meta_data(file_path)
                     else:
                         # Remove file and try again
                         os.remove(file_path)
                         raise ValueError(
-                            f"Error downloading file: {file_response.status_code}. File is empty."
+                            f"Error downloading file: {file_response.status_code}. "
+                            "File is empty."
                         )
                 elif file_response.status_code == 204:
                     # Check if the file creation causes any errors
                     json_response = requests.get(
                         BASE_URL + json_url
-                    )  # This json contains information about your data request (e.g. status)
+                        # This json contains information about your data request (e.g.
+                        # status)
+                    )
                     # Check the status of the json
                     if "status" in json_response.json():
                         if json_response.json()["status"] == "processing":
-                            # If the file is not found, sleep for a short period and try again
+                            # If the file is not found, sleep for a short period and try
+                            # again
                             if verbose:
                                 print(f"File {file_id} not ready yet, waiting...")
                             time.sleep(3)
                         elif json_response.json()["status"] == "ok":
                             if verbose:
                                 print(
-                                    f"File {file_id} succesfully written! Will return file."
+                                    f"File {file_id} succesfully written! "
+                                    "Will return file."
                                 )
                         else:
                             raise ValueError(
-                                f"Error downloading file: {json_response.json()['status']}"
+                                "Error downloading file: "
+                                f"{json_response.json()['status']}"
                             )
                     elif "error" in json_response.json():
                         raise ValueError(
@@ -169,13 +181,14 @@ def get_data(
                     break
             except Exception as e:
                 print(
-                    f"""Error downloading file: {e}. Try {n_tries} of {max_retries}. Retrying in 3 seconds...
-                    """
+                    f"Error downloading file: {e}. Try {n_tries} of "
+                    f"{max_retries}. Retrying in 3 seconds..."
                 )
                 n_tries += 1
                 if n_tries > max_retries:
                     raise ValueError(
-                        f"Error downloading file: {file_response.status_code}. Max retries reached."
+                        f"Error downloading file: {file_response.status_code}. "
+                        "Max retries reached."
                     )
                 time.sleep(3)
     else:
@@ -192,12 +205,13 @@ def read_parquet_and_meta_data(file_path: str | PathLike[str]) -> pd.DataFrame:
     return df
 
 
-# Because of SQL limitation, the names of the tables do not perfectly match the instrument names.
+# Because of SQL limitation, the names of the tables do not perfectly match the
+# instrument names.
 # This function converts the instrument name to the table name.
 def extract_instrument_name(file_path: str | PathLike[str]) -> str:
-    """
-    Because of SQL limitation, the names of the tables do not perfectly match the instrument names.
-    This function converts the instrument name to the table name.
+    """Because of SQL limitation, the names of the tables do not perfectly
+    match the instrument names. This function converts the instrument name to
+    the table name.
 
     Parameters
     ----------
@@ -207,18 +221,23 @@ def extract_instrument_name(file_path: str | PathLike[str]) -> str:
     Returns
     -------
     str
-        The extracted instrument name, converted to lowercase with underscores in place of hyphens.
+        The extracted instrument name, converted to lowercase with underscores
+        in place of hyphens.
 
     Example
     -------
-    >>> extract_instrument_name('/var/lib/ecallisto/2023/01/27/ALASKA-COHOE_20230127_001500_612.fit.gz')
+    >>> extract_instrument_name(
+    ...     '/var/lib/ecallisto/2023/01/27/'
+    ...     'ALASKA-COHOE_20230127_001500_612.fit.gz'
+    ... )
     'alaska_cohoe_612'
 
     Notes
     -----
     The function first selects the last part of the file path and removes the extension.
-    Then, it replaces hyphens with underscores and splits on underscores to get the parts of the file name.
-    The function concatenates these parts, adding a numeric part of the file name if it is less than 6 digits.
+    Then, it replaces hyphens with underscores and splits on underscores to get
+    the parts of the file name. The function concatenates these parts, adding a
+    numeric part of the file name if it is less than 6 digits.
     """
     # select last part of path and remove extension
     file_name_parts = os.path.basename(file_path).split(".")[0]
@@ -230,7 +249,9 @@ def extract_instrument_name(file_path: str | PathLike[str]) -> str:
             file_name += "_" + part
     if (
         len(file_name_parts[-1]) < 6 and file_name_parts[-1].isnumeric()
-    ):  # Sometimes, the last part is an ID number for when the station has multiple instruments.
+    ):
+        # Sometimes, the last part is an ID number for when the station has
+        # multiple instruments.
         # We want to add this to the file name if it's not a time (6 digits).
         file_name = file_name + "_" + file_name_parts[-1]
 
@@ -240,9 +261,9 @@ def extract_instrument_name(file_path: str | PathLike[str]) -> str:
 def reverse_extract_instrument_name(
     instrument_name: str, include_number: bool = False
 ) -> str:
-    """
-    Because of SQL limitation, the names of the tables do not perfectly match the instrument names.
-    Convert a lower-case instrument name with underscores to its original hyphenated form.
+    """Because of SQL limitation, the names of the tables do not perfectly
+    match the instrument names. Convert a lower-case instrument name with
+    underscores to its original hyphenated form.
 
     Parameters
     ----------
@@ -262,7 +283,6 @@ def reverse_extract_instrument_name(
     'ALASKA-COHOE'
     >>> reverse_extract_instrument_name('alaska_cohoe_612', include_number=True)
     'ALASKA-COHOE_612'
-
     """
     # Replace underscores with hyphens and upper all the letters
     parts = [part.upper() for part in instrument_name.split("_")]

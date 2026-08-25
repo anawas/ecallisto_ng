@@ -9,19 +9,21 @@ except ImportError:
 import numpy as np
 import pandas as pd
 
-from ecallisto_ng.combine_antennas.combine import (match_spectrograms,
-                                                   preprocess_data,
-                                                   sync_spectrograms)
-from ecallisto_ng.combine_antennas.utils import \
-    round_frequencies_to_nearest_bin
+from ecallisto_ng.combine_antennas.combine import (
+    match_spectrograms,
+    preprocess_data,
+    sync_spectrograms,
+)
+from ecallisto_ng.combine_antennas.utils import round_frequencies_to_nearest_bin
 
 
 class EcallistoVirtualAntenna:
     """
-    A class to create a virtual antenna from multiple e-CALLISTO spectrograms by preprocessing,
-    synchronizing, matching, and combining them. It enables background subtraction, filtering,
-    and adjustment in dB space, along with frequency binning and quantile stacking to combine
-    the spectrograms into a single virtual antenna representation.
+    Create a virtual antenna from multiple e-CALLISTO spectrograms.
+
+    The input spectrograms are preprocessed, synchronized, matched, and
+    combined. The workflow supports background subtraction, filtering, dB-space
+    adjustment, frequency binning, and quantile stacking.
 
     Parameters
     ----------
@@ -40,17 +42,9 @@ class EcallistoVirtualAntenna:
 
     Example
     -------
-    >>> virtual_antenna = EcallistoVirtualAntenna(
-        min_n_frequencies=30,
-        freq_range=(50, 400),
-        subtract_background=True,
-        filter_type='median',
-        filter_size=(12, 12),
-        db_space=True
-    )
-    >>> dfs = [pd.DataFrame(np.random.rand(100, 100)), pd.DataFrame(np.random.rand(100, 100))]
-    >>> synced_data, ref_idx = virtual_antenna.preprocess_match_sync(dfs, method='round', bin_width=0.2)
-    >>> combined_spectrogram = virtual_antenna.combine(dfs, quantile=0.5)
+    Create an instance with ``EcallistoVirtualAntenna(...)``, preprocess and
+    synchronize a list of dataframes with ``preprocess_match_sync(...)``, then
+    combine them with ``combine(...)``.
     """
 
     def __init__(
@@ -101,23 +95,23 @@ class EcallistoVirtualAntenna:
         method: Literal["round", "rebin"] = "round",
         bin_width: float = 0.2,
     ) -> tuple[list[pd.DataFrame], int | np.integer | None]:
-        """
-        Preprocesses, matches, and synchronizes a list of spectrogram DataFrames.
-        This is a higher-level function that calls the individual preprocessing, matching,
-        and synchronization methods.
+        """Preprocesses, matches, and synchronizes a list of spectrogram
+        DataFrames. This is a higher-level function that calls the individual
+        preprocessing, matching, and synchronization methods.
 
-        Parameters:
-        - dfs (List[pd.DataFrame]): List of spectrogram DataFrames to process.
-        - method (Literal["round", "rebin"], optional): Method to use for frequency binning. Defaults to "round".
-        - bin_width (float, optional): Bin width for frequency binning. Defaults to 0.2.
+        Parameters: - dfs (List[pd.DataFrame]): List of spectrogram DataFrames
+        to process. - method (Literal["round", "rebin"], optional): Method to
+        use for frequency binning. Defaults to "round". - bin_width (float,
+        optional): Bin width for frequency binning. Defaults to 0.2.
 
-        Returns:
-        - Tuple[List[pd.DataFrame], int]: A tuple containing the list of synchronized and processed spectrograms
-        and the index of the reference spectrogram.
+        Returns: - Tuple[List[pd.DataFrame], int]: A tuple containing the list
+        of synchronized and processed spectrograms and the index of the
+        reference spectrogram.
         """
         if method == "rebin":
             print(
-                f"Warning! Rebinning is very unstable. When a bin contains any NANs, the whole bin will be NAN."
+                "Warning! Rebinning is very unstable. When a bin contains any "
+                "NANs, the whole bin will be NAN."
             )
         print(f"Combining {len(dfs)} spectrograms.")
         data_processed = self._preprocess(dfs)
@@ -205,21 +199,23 @@ class EcallistoVirtualAntenna:
         grad_penalty_weight: float = 0.001,
         lr: float = 0.01,
     ) -> pd.DataFrame:
-        """
-        Combines multiple spectrograms into a virtual antenna spectrogram.
-        This function provides different methods for combining the spectrograms.
+        """Combines multiple spectrograms into a virtual antenna spectrogram.
 
-        Parameters:
-        - dfs (List[pd.DataFrame]): List of spectrogram DataFrames to combine.
-        - method (str): Method for combining the spectrograms. Options: 'quantile', 'loss'. Defaults to 'quantile'.
-        - quantile (float): Quantile to use for stacking. Defaults to 0.5 (median).
-        - epochs (int): Number of epochs for optimization. Defaults to 1000.
-        - ignore_ratio (float): Ratio of top loss dataframes to ignore. Defaults to 0.1.
-        - grad_penalty_weight (float): Weight for the gradient penalty. Defaults to 0.001.
-        - lr (float): Learning rate for optimization. Defaults to 0.01.
+        This function provides different methods for combining the
+        spectrograms.
 
-        Returns:
-        - pd.DataFrame: DataFrame representing the combined virtual antenna spectrogram.
+        Parameters: - dfs (List[pd.DataFrame]): List of spectrogram DataFrames
+        to combine. - method (str): Method for combining the spectrograms.
+        Options: 'quantile', 'loss'. Defaults to 'quantile'. - quantile
+        (float): Quantile to use for stacking. Defaults to 0.5 (median). -
+        epochs (int): Number of epochs for optimization. Defaults to 1000. -
+        ignore_ratio (float): Ratio of top loss dataframes to ignore. Defaults
+        to 0.1. - grad_penalty_weight (float): Weight for the gradient penalty.
+        Defaults to 0.001. - lr (float): Learning rate for optimization.
+        Defaults to 0.01.
+
+        Returns: - pd.DataFrame: DataFrame representing the combined virtual
+        antenna spectrogram.
         """
         if method == "quantile":
             df = self._combine_quantile(dfs, quantile)
